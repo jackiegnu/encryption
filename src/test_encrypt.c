@@ -1,0 +1,105 @@
+#include "encrypt.h"
+#include "rijndael.h"
+
+#include <stdio.h>
+#include <string.h>
+#include "sim_api.h"
+
+#define KEYBITS 128
+
+int main(int argc, char **argv) {
+	const char *password = "EmbCompArch";
+	//Modify this point to the correct path that contains the src and testdata e.g
+	//nst char input[] = "../data/input_plaintext.txt";
+	const char input[] = "input/input.png";
+	const char output[] = "cipherfile.txt";
+	const char output_check[] = "test_decrypt.png";
+
+	unsigned long rk[RKLENGTH(KEYBITS)];
+	unsigned char key[KEYLENGTH(KEYBITS)];
+	unsigned int i;
+	int nrounds;
+	FILE *input_file, *output_file;
+	unsigned char plaintext[16];
+	unsigned char ciphertext[16];
+
+	//set the number of threads for openmp to use
+	//by default we set this to the number of processors 
+	//but of course you are free to change this number
+	omp_set_num_threads(N_PROC);
+
+	//you can uncomment the code below to verify 
+	//openMP is working correctly
+	/*
+	#pragma omp parallel
+	{
+	  // Obtain thread number
+	  int tid = omp_get_thread_num();
+	  printf("Hello World from thread = %d\n", tid);
+
+	  // Only master thread does this
+	  if (tid == 0){
+	    int nthreads = omp_get_num_threads();
+	    printf("Number of threads = %d\n", nthreads);
+	  }
+	}*/
+
+	input_file = fopen(input, "r");
+	if (!input_file) {
+		printf("Error opening %s\n", input);
+		return 0;
+	}
+
+	output_file = fopen(output, "w");
+	if (!output_file) {
+		printf("Error opening %s\n", output);
+		return 0;
+	}
+
+	SimRoiStart();
+	//Map password to key
+	for (i = 0; i < sizeof(key); i++)
+		key[i] = *password != 0 ? *password++ : 0;
+
+	nrounds = rijndaelSetupEncrypt(rk, key, KEYBITS);
+	while (!feof(input_file)) {
+		int nread = fread(plaintext, 1, sizeof(plaintext), input_file);
+		if (nread == 0)
+			break;
+		for( i = nread; i < sizeof(plaintext); i++)
+			plaintext[i] = ' ';
+
+		rijndaelEncrypt(rk, nrounds, plaintext, ciphertext);
+		if (fwrite(ciphertext, sizeof(ciphertext), 1, output_file) != 1) {
+			fclose(output_file);
+			return 1;
+		}
+	}
+    	SimRoiEnd();
+	fclose(input_file);
+	fclose(output_file);
+
+	input_file = fopen(output, "r");
+	if (!input_file) {
+		printf("Error opening %s\n", output);
+		return 0;
+	}
+
+	output_file = fopen(output_check, "w");
+	if (!output_file) {
+		printf("Error opening %s\n", output_check);
+		return 0;
+	}
+
+	nrounds = rijndaelSetupDecrypt(rk, key, KEYBITS);
+	while (1) {
+		if (fread(ciphertext, sizeof(ciphertext), 1, input_file) != 1)
+			break;
+		rijndaelDecrypt(rk, nrounds, ciphertext, plaintext);
+		fwrite(plaintext, sizeof(plaintext), 1, output_file);
+	}
+	fclose(input_file);
+	fclose(output_file);
+
+	return 0;
+}

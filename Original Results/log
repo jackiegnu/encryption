@@ -1,0 +1,58 @@
+ubuntu@ubuntu-VirtualBox:~/snipersim/test/encryption$ make mcpat N_PROC=1
+cc -c -fopenmp -mfpmath=sse -msse2 -I../../include -DN_PROC=1 src/encrypt.c -o src/encrypt.o
+cc -c -fopenmp -mfpmath=sse -msse2 -I../../include -DN_PROC=1 src/rijndael.c -o src/rijndael.o
+cc -c -fopenmp -mfpmath=sse -msse2 -I../../include -DN_PROC=1 src/test_encrypt.c -o src/test_encrypt.o
+cc  src/encrypt.o src/rijndael.o src/test_encrypt.o -lm -lz -static -L/home/ubuntu/snipersim/lib -pthread -m32 -DN_PROC=1 -fopenmp -o test_encrypt
+../../run-sniper --roi -n 1  -c proc -- ./test_encrypt
+[SNIPER] Start
+[SNIPER] --------------------------------------------------------------------------------
+[SNIPER] Sniper using Pin frontend
+[SNIPER] Running pre-ROI region in  CACHE_ONLY mode
+[SNIPER] Running application ROI in DETAILED mode
+[SNIPER] Running post-ROI region in FAST_FORWARD mode
+[SNIPER] --------------------------------------------------------------------------------
+[SNIPER] Enabling performance models
+[SNIPER] Setting instrumentation mode to DETAILED
+[SNIPER] Disabling performance models
+[SNIPER] Leaving ROI after 123.25 seconds
+[SNIPER] Simulated 76.1M instructions, 51.9M cycles, 1.47 IPC
+[SNIPER] Simulation speed 617.3 KIPS (617.3 KIPS / target core - 1619.9ns/instr)
+[SNIPER] Setting instrumentation mode to FAST_FORWARD
+[SNIPER] End
+[SNIPER] Elapsed time: 124.95 seconds
+../../tools/mcpat.py
+                     Power     Energy    Energy %
+  core-core         2.20 W     0.05  J     17.80%
+  core-ifetch       0.77 W     0.02  J      6.18%
+  core-alu          0.29 W     6.30 mJ      2.35%
+  core-int          0.19 W     4.11 mJ      1.53%
+  core-fp           0.74 W     0.02  J      6.00%
+  core-mem          1.26 W     0.03  J     10.19%
+  core-other        0.88 W     0.02  J      7.13%
+  icache            0.17 W     3.73 mJ      1.39%
+  dcache            0.67 W     0.01  J      5.41%
+  l2                0.31 W     6.63 mJ      2.48%
+  l3                0.63 W     0.01  J      5.05%
+  dram              4.25 W     0.09  J     34.35%
+  other             0.01 W     0.32 mJ      0.12%
+
+  core              6.34 W     0.14  J     51.19%
+  cache             1.77 W     0.04  J     14.33%
+  total            12.38 W     0.27  J    100.00%
+../../tools/mcpat.py -t area
+                         Area    Area %
+  core-core         1.29 mm^2     4.11%
+  core-ifetch       1.72 mm^2     5.47%
+  core-fp           4.66 mm^2    14.78%
+  core-mem          0.82 mm^2     2.60%
+  core-other        5.04 mm^2    15.99%
+  icache            1.49 mm^2     4.72%
+  dcache            2.38 mm^2     7.54%
+  l2                3.02 mm^2     9.59%
+  l3               10.35 mm^2    32.83%
+  other             0.75 mm^2     2.39%
+
+  core             13.53 mm^2    42.93%
+  cache            17.24 mm^2    54.67%
+  total            31.53 mm^2   100.00%
+
