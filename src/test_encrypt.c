@@ -6,6 +6,10 @@
 #include "sim_api.h"
 
 #define KEYBITS 128
+#define N_FRAMES 512
+
+/*unsigned char **createMatrix(int M, int N);
+*/
 
 int main(int argc, char **argv) {
 	const char *password = "EmbCompArch";
@@ -15,13 +19,27 @@ int main(int argc, char **argv) {
 	const char output[] = "cipherfile.txt";
 	const char output_check[] = "test_decrypt.png";
 
+	
+	// Added by LZAVALAM'
+	unsigned char *matrx;
+	int p,j;
+	// END ADDED by LZAVALAM
+	
+	
 	unsigned long rk[RKLENGTH(KEYBITS)];
 	unsigned char key[KEYLENGTH(KEYBITS)];
-	unsigned int i;
+	//unsigned int i;
+	int i; //CHANGED
+
 	int nrounds;
 	FILE *input_file, *output_file;
-	unsigned char plaintext[16];
-	unsigned char ciphertext[16];
+	unsigned char plaintext[16*N_FRAMES];
+	unsigned char plaintext2[16];
+	unsigned char pt[16];
+	
+	
+	unsigned char ciphertext[16*N_FRAMES];
+	unsigned char ciphertext2[16];
 
 	//set the number of threads for openmp to use
 	//by default we set this to the number of processors 
@@ -30,7 +48,7 @@ int main(int argc, char **argv) {
 
 	//you can uncomment the code below to verify 
 	//openMP is working correctly
-	/*
+	
 	#pragma omp parallel
 	{
 	  // Obtain thread number
@@ -42,8 +60,11 @@ int main(int argc, char **argv) {
 	    int nthreads = omp_get_num_threads();
 	    printf("Number of threads = %d\n", nthreads);
 	  }
-	}*/
+	}
+    // End tst  OPEN MP
 
+
+    
 	input_file = fopen(input, "r");
 	if (!input_file) {
 		printf("Error opening %s\n", input);
@@ -56,26 +77,53 @@ int main(int argc, char **argv) {
 		return 0;
 	}
 
-	SimRoiStart();
+	
+	int count1 = 0, count2 = 0;
+	int nread_last;
+	
+	//--------------------------------------------------------------------------------
+	SimRoiStart();		// START ROI OF SIMULATION OF SNIPERSIM
 	//Map password to key
-	for (i = 0; i < sizeof(key); i++)
-		key[i] = *password != 0 ? *password++ : 0;
+	#pragma omp parallel for
+	for (i = 0; i < sizeof(key); i++)	// COPYING ENCRIPTION KEY: lUIS
+		key[i] = *password != 0 ? *password++ : 0;					// Key contains the encryption key plus 0s to fix the value to 128/192/256 bits
 
-	nrounds = rijndaelSetupEncrypt(rk, key, KEYBITS);
+	nrounds = rijndaelSetupEncrypt(rk, key, KEYBITS);					// <-----------
 	while (!feof(input_file)) {
+	    //LZAVALAM, changged size of plain text
 		int nread = fread(plaintext, 1, sizeof(plaintext), input_file);
 		if (nread == 0)
 			break;
-		for( i = nread; i < sizeof(plaintext); i++)
+		for( i = nread; i < sizeof(plaintext); i++) {
 			plaintext[i] = ' ';
-
-		rijndaelEncrypt(rk, nrounds, plaintext, ciphertext);
-		if (fwrite(ciphertext, sizeof(ciphertext), 1, output_file) != 1) {
-			fclose(output_file);
-			return 1;
 		}
+		
+		if(nread == sizeof(plaintext)) {
+			#pragma omp parallel for
+			for(p = 0; p<N_FRAMES ;p++){
+		           rijndaelEncrypt(rk, nrounds, plaintext+p*16, ciphertext+p*16);				// <-----------
+          		}
+         		 //#pragma omp critical
+		  	if (fwrite(ciphertext, sizeof(ciphertext), 1, output_file) != 1) {
+				fclose(output_file);
+				return 1;
+			}
+		}
+		else {
+			nread--;
+			j = nread>>4;
+			for(p=0; p<=j; p++) {
+			    rijndaelEncrypt(rk, nrounds, plaintext+p*16, ciphertext+p*16);
+			    if (fwrite(ciphertext+p*16, sizeof(ciphertext)/N_FRAMES, 1, output_file) != 1) {
+				fclose(output_file);
+				return 1;
+			    }
+			}
+		}	
 	}
     	SimRoiEnd();
+	//----------------------------------------------------------------------------
+
 	fclose(input_file);
 	fclose(output_file);
 
@@ -93,13 +141,29 @@ int main(int argc, char **argv) {
 
 	nrounds = rijndaelSetupDecrypt(rk, key, KEYBITS);
 	while (1) {
-		if (fread(ciphertext, sizeof(ciphertext), 1, input_file) != 1)
+		if (fread(ciphertext2, sizeof(ciphertext2), 1, input_file) != 1)
 			break;
-		rijndaelDecrypt(rk, nrounds, ciphertext, plaintext);
-		fwrite(plaintext, sizeof(plaintext), 1, output_file);
+		rijndaelDecrypt(rk, nrounds, ciphertext2, plaintext2);
+		fwrite(plaintext2, sizeof(plaintext2), 1, output_file);
 	}
 	fclose(input_file);
 	fclose(output_file);
 
 	return 0;
 }
+
+/*
+// Added by LZAVALAM
+unsigned char **createMatrix(int M, int N){
+    // Local variables
+    int i =0, j =0;
+    unsigned char **mat;
+
+    // M Rows by N columns 
+    mat = calloc(N, 1+sizeof(unsigned char*));
+    for(i = 0;i<M;i++) 
+        mat[i] = calloc(N, sizeof(unsigned char));
+ 
+    return mat;        
+} 
+*/
