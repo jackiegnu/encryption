@@ -80,45 +80,50 @@ int main(int argc, char **argv) {
 	
 	int count1 = 0, count2 = 0;
 	int nread_last;
+	unsigned int offset = 0;
+	int nread;
+	unsigned int write_size;
 	
 	//--------------------------------------------------------------------------------
 	SimRoiStart();		// START ROI OF SIMULATION OF SNIPERSIM
 	//Map password to key
 	#pragma omp parallel for
-	for (i = 0; i < sizeof(key); i++)	// COPYING ENCRIPTION KEY: lUIS
+	for (i = 0; i < sizeof(key); i++)
 		key[i] = *password != 0 ? *password++ : 0;					// Key contains the encryption key plus 0s to fix the value to 128/192/256 bits
 
-	nrounds = rijndaelSetupEncrypt(rk, key, KEYBITS);					// <-----------
+	nrounds = rijndaelSetupEncrypt(rk, key, KEYBITS);
 	while (!feof(input_file)) {
-	    //LZAVALAM, changged size of plain text
-		int nread = fread(plaintext, 1, sizeof(plaintext), input_file);
+		nread = fread(plaintext, 1, sizeof(plaintext), input_file);
 		if (nread == 0)
 			break;
-		for( i = nread; i < sizeof(plaintext); i++) {
-			plaintext[i] = ' ';
-		}
 		
 		if(nread == sizeof(plaintext)) {
 			#pragma omp parallel for
 			for(p = 0; p<N_FRAMES ;p++){
-		           rijndaelEncrypt(rk, nrounds, plaintext+p*16, ciphertext+p*16);				// <-----------
+		           rijndaelEncrypt(rk, nrounds, plaintext+(p<<4), ciphertext+(p<<4));
           		}
-         		 //#pragma omp critical
-		  	if (fwrite(ciphertext, sizeof(ciphertext), 1, output_file) != 1) {
-				fclose(output_file);
-				return 1;
-			}
+         		
+			write_size = sizeof(ciphertext);
 		}
 		else {
-			nread--;
-			j = nread>>4;
-			for(p=0; p<=j; p++) {
-			    rijndaelEncrypt(rk, nrounds, plaintext+p*16, ciphertext+p*16);
-			    if (fwrite(ciphertext+p*16, sizeof(ciphertext)/N_FRAMES, 1, output_file) != 1) {
-				fclose(output_file);
-				return 1;
-			    }
+			j = ((nread-1)>>4)+1;
+			write_size = (sizeof(ciphertext)*j)/N_FRAMES;
+
+			//#pragma omp parallel for //this doesn't help
+			for( i = nread; i < write_size; i++) {
+			    plaintext[i] = ' ';
 			}
+
+			#pragma omp parallel for
+			for(p=0; p<j; p++) {
+			    rijndaelEncrypt(rk, nrounds, plaintext+(p<<4), ciphertext+(p<<4));
+			}
+
+		}
+
+		if (fwrite(ciphertext,  write_size, 1, output_file) != 1) {
+		    fclose(output_file);
+		    return 1;
 		}	
 	}
     	SimRoiEnd();
