@@ -1,0 +1,97 @@
+Cores: 2
+Number of frames: 8192
+
+EDAP =
+
+                     Power     Energy    Energy %
+  core-core         5.70 W     0.04  J     25.41%
+  core-ifetch       1.80 W     0.01  J      8.02%
+  core-alu          0.58 W     3.65 mJ      2.60%
+  core-int          0.38 W     2.38 mJ      1.69%
+  core-fp           1.49 W     9.31 mJ      6.62%
+  core-mem          3.19 W     0.02  J     14.20%
+  core-other        1.74 W     0.01  J      7.74%
+  icache            0.36 W     2.24 mJ      1.59%
+  dcache            1.63 W     0.01  J      7.28%
+  l2                0.62 W     3.88 mJ      2.76%
+  l3                0.63 W     3.94 mJ      2.80%
+  dram              4.31 W     0.03  J     19.21%
+  other             0.02 W     0.12 mJ      0.09%
+
+  core             14.87 W     0.09  J     66.28%
+  cache             3.24 W     0.02  J     14.43%
+  total            22.43 W     0.14  J    100.00%
+../../tools/mcpat.py -t area
+                         Area    Area %
+  core-core         2.59 mm^2     4.93%
+  core-ifetch       3.45 mm^2     6.56%
+  core-fp           9.32 mm^2    17.75%
+  core-mem          1.64 mm^2     3.12%
+  core-other       10.08 mm^2    19.20%
+  icache            2.98 mm^2     5.67%
+  dcache            4.75 mm^2     9.05%
+  l2                6.05 mm^2    11.52%
+  l3               10.35 mm^2    19.72%
+  other             1.31 mm^2     2.49%
+
+  core             27.07 mm^2    51.56%
+  cache            24.12 mm^2    45.95%
+  total            52.50 mm^2   100.00%
+
+
+                                     | Core 0     | Core 1    
+  Instructions                       |   28589666 |   28584718
+  Cycles                             |   15044254 |   15041432
+  IPC                                |       1.90 |       1.90
+  Time (ns)                          |    6268439 |    6267264
+Branch predictor stats               |            |           
+  num correct                        |     152278 |     153408
+  num incorrect                      |        202 |         36
+  misprediction rate                 |      0.13% |      0.02%
+  mpki                               |       0.01 |       0.00
+TLB Summary                          |            |           
+  I-TLB                              |            |           
+    num accesses                     |    1734343 |    1735088
+    num misses                       |          1 |          1
+    miss rate                        |      0.00% |      0.00%
+    mpki                             |       0.00 |       0.00
+  D-TLB                              |            |           
+    num accesses                     |   14580832 |   14563919
+    num misses                       |         41 |         66
+    miss rate                        |      0.00% |      0.00%
+    mpki                             |       0.00 |       0.00
+  L2 TLB                             |            |           
+    num accesses                     |         42 |         67
+    num misses                       |         42 |         46
+    miss rate                        |    100.00% |     68.66%
+    mpki                             |       0.00 |       0.00
+Cache Summary                        |            |           
+  Cache L1-I                         |            |           
+    num cache accesses               |    1734343 |    1735088
+    num cache misses                 |       1430 |        471
+    miss rate                        |      0.08% |      0.03%
+    mpki                             |       0.05 |       0.02
+  Cache L1-D                         |            |           
+    num cache accesses               |   14581001 |   14563937
+    num cache misses                 |     321667 |     353795
+    miss rate                        |      2.21% |      2.43%
+    mpki                             |      11.25 |      12.38
+  Cache L2                           |            |           
+    num cache accesses               |     323109 |     354266
+    num cache misses                 |       9603 |       5581
+    miss rate                        |      2.97% |      1.58%
+    mpki                             |       0.34 |       0.20
+  Cache L3                           |            |           
+    num cache accesses               |       9618 |       5581
+    num cache misses                 |       2263 |       2102
+    miss rate                        |     23.53% |     37.66%
+    mpki                             |       0.08 |       0.07
+DRAM summary                         |            |           
+  num dram accesses                  |       4365 |          0
+  average dram access latency (ns)   |      55.98 |        inf
+  average dram queueing delay        |       2.55 |       0.00
+  average dram bandwidth utilization |      0.00% |      0.00%
+Coherency Traffic                    |            |           
+  num loads from dram                |       1085 |       1065
+  num loads from dram cache          |          0 |          0
+  num loads from remote cache        |          0 |          0

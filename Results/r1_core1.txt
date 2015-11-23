@@ -1,0 +1,96 @@
+Cores: 1
+Number of frames: 512
+
+EDAP = 66.8
+
+                     Power     Energy    Energy %
+  core-core         2.88 W     0.04  J     21.00%
+  core-ifetch       0.91 W     0.01  J      6.61%
+  core-alu          0.29 W     3.63 mJ      2.12%
+  core-int          0.19 W     2.37 mJ      1.38%
+  core-fp           0.74 W     9.26 mJ      5.41%
+  core-mem          1.62 W     0.02  J     11.79%
+  core-other        0.88 W     0.01  J      6.44%
+  icache            0.18 W     2.23 mJ      1.30%
+  dcache            0.83 W     0.01  J      6.03%
+  l2                0.31 W     3.82 mJ      2.24%
+  l3                0.63 W     7.80 mJ      4.56%
+  dram              4.26 W     0.05  J     31.01%
+  other             0.01 W     0.19 mJ      0.11%
+
+  core              7.51 W     0.09  J     54.75%
+  cache             1.94 W     0.02  J     14.13%
+  total            13.72 W     0.17  J    100.00%
+../../tools/mcpat.py -t area
+                         Area    Area %
+  core-core         1.29 mm^2     4.11%
+  core-ifetch       1.72 mm^2     5.47%
+  core-fp           4.66 mm^2    14.78%
+  core-mem          0.82 mm^2     2.60%
+  core-other        5.04 mm^2    15.99%
+  icache            1.49 mm^2     4.72%
+  dcache            2.38 mm^2     7.54%
+  l2                3.02 mm^2     9.59%
+  l3               10.35 mm^2    32.83%
+  other             0.75 mm^2     2.39%
+
+  core             13.53 mm^2    42.93%
+  cache            17.24 mm^2    54.67%
+  total            31.53 mm^2   100.00%
+
+                                     | Core 0    
+  Instructions                       |   57439063
+  Cycles                             |   29910439
+  IPC                                |       1.92
+  Time (ns)                          |   12462683
+Branch predictor stats               |           
+  num correct                        |     327562
+  num incorrect                      |        435
+  misprediction rate                 |      0.13%
+  mpki                               |       0.01
+TLB Summary                          |           
+  I-TLB                              |           
+    num accesses                     |    3486831
+    num misses                       |          0
+    miss rate                        |      0.00%
+    mpki                             |       0.00
+  D-TLB                              |           
+    num accesses                     |   29439382
+    num misses                       |          9
+    miss rate                        |      0.00%
+    mpki                             |       0.00
+  L2 TLB                             |           
+    num accesses                     |          9
+    num misses                       |          9
+    miss rate                        |    100.00%
+    mpki                             |       0.00
+Cache Summary                        |           
+  Cache L1-I                         |           
+    num cache accesses               |    3486831
+    num cache misses                 |      10346
+    miss rate                        |      0.30%
+    mpki                             |       0.18
+  Cache L1-D                         |           
+    num cache accesses               |   29439580
+    num cache misses                 |     585311
+    miss rate                        |      1.99%
+    mpki                             |      10.19
+  Cache L2                           |           
+    num cache accesses               |     595657
+    num cache misses                 |       2244
+    miss rate                        |      0.38%
+    mpki                             |       0.04
+  Cache L3                           |           
+    num cache accesses               |       2364
+    num cache misses                 |        513
+    miss rate                        |     21.70%
+    mpki                             |       0.01
+DRAM summary                         |           
+  num dram accesses                  |        513
+  average dram access latency (ns)   |      60.15
+  average dram queueing delay        |       6.72
+  average dram bandwidth utilization |      0.00%
+Coherency Traffic                    |           
+  num loads from dram                |        225
+  num loads from dram cache          |          0
+  num loads from remote cache        |          0
