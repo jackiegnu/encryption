@@ -6,7 +6,7 @@
 #include "sim_api.h"
 
 #define KEYBITS 128
-#define N_FRAMES 512
+#define N_FRAMES (1024*4)
 
 /*unsigned char **createMatrix(int M, int N);
 */
@@ -81,7 +81,8 @@ int main(int argc, char **argv) {
 	int count1 = 0, count2 = 0;
 	int nread_last;
 	unsigned int offset = 0;
-	int nread;
+	unsigned int nread;
+	unsigned int npackets;
 	unsigned int write_size;
 	
 	//--------------------------------------------------------------------------------
@@ -96,29 +97,18 @@ int main(int argc, char **argv) {
 		nread = fread(plaintext, 1, sizeof(plaintext), input_file);
 		if (nread == 0)
 			break;
-		
-		if(nread == sizeof(plaintext)) {
-			#pragma omp parallel for
-			for(p = 0; p<N_FRAMES ;p++){
-		           rijndaelEncrypt(rk, nrounds, plaintext+(p<<4), ciphertext+(p<<4));
-          		}
-         		
-			write_size = sizeof(ciphertext);
+
+		npackets = ((nread-1)>>4)+1;
+		write_size = npackets<<4;
+
+		//#pragma omp parallel for //this doesn't help
+		for( i = nread; i < write_size; i++) {
+			plaintext[i] = ' ';
 		}
-		else {
-			j = ((nread-1)>>4)+1;
-			write_size = (sizeof(ciphertext)*j)/N_FRAMES;
 
-			//#pragma omp parallel for //this doesn't help
-			for( i = nread; i < write_size; i++) {
-			    plaintext[i] = ' ';
-			}
-
-			#pragma omp parallel for
-			for(p=0; p<j; p++) {
-			    rijndaelEncrypt(rk, nrounds, plaintext+(p<<4), ciphertext+(p<<4));
-			}
-
+		#pragma omp parallel for
+		for(p=0; p<npackets; p++) {
+			rijndaelEncrypt(rk, nrounds, plaintext+(p<<4), ciphertext+(p<<4));
 		}
 
 		if (fwrite(ciphertext,  write_size, 1, output_file) != 1) {
@@ -157,18 +147,3 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
-/*
-// Added by LZAVALAM
-unsigned char **createMatrix(int M, int N){
-    // Local variables
-    int i =0, j =0;
-    unsigned char **mat;
-
-    // M Rows by N columns 
-    mat = calloc(N, 1+sizeof(unsigned char*));
-    for(i = 0;i<M;i++) 
-        mat[i] = calloc(N, sizeof(unsigned char));
- 
-    return mat;        
-} 
-*/
